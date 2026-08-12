@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Проект или не проект? — Проектное управление</title>
+
+  <!-- Шрифты: Inter + Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+
+  <!-- Общая дизайн-система -->
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* ─── Цвета трёх признаков (только для этой страницы) ─────
+       Цвет = признак. ✓/✗/~ в чипе = соблюдён он или нарушен.  */
+    :root {
+      --c-time:       #C31532;  --c-time-bg:    #FBE3E7;  --c-time-dark:    #9E1128;
+      --c-context:    #0B6E7F;  --c-context-bg: #E0EEF1;  --c-context-dark: #084F5C;
+      --c-value:      #8A6200;  --c-value-bg:   #FCF2DC;  --c-value-dark:   #6E4E00;
+    }
+
+    /* Одинаковая высота экранов — iframe не «прыгает» */
+    .screen { min-height: 722px; }
+
+    /* ─── Карточка кейса ──────────────────────────────────── */
+    .case-card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 20px;
+      min-height: 218px;   /* по самому длинному кейсу — карточка не «дышит» */
+      display: flex;
+      align-items: center;
+    }
+
+    .case-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--slate);
+    }
+
+    /* ─── Подсветка фрагментов ────────────────────────────── */
+    /* До ответа — обычный текст, подсветка выключена.
+       Ширина текста не меняется, поэтому высота карточки стабильна. */
+    .case-text mark {
+      background: transparent;
+      color: inherit;
+      padding: 1px 0;
+      border-radius: 3px;
+      transition: background 0.3s, color 0.3s;
+      -webkit-box-decoration-break: clone;
+      box-decoration-break: clone;
+    }
+
+    .case-text.is-revealed mark { padding: 1px 3px; font-weight: 500; }
+    .case-text.is-revealed .hl--time    { background: var(--c-time-bg);    color: var(--c-time-dark);    }
+    .case-text.is-revealed .hl--context { background: var(--c-context-bg); color: var(--c-context-dark); }
+    .case-text.is-revealed .hl--value   { background: var(--c-value-bg);   color: var(--c-value-dark);   }
+
+    /* ─── Зона ответа / фидбэка ───────────────────────────── */
+    /* Зарезервирована высота самого длинного фидбэка — кнопка «Далее»
+       всегда на одном месте, iframe не меняет высоту между кейсами */
+    .answer-zone { min-height: 408px; margin-top: 14px; }
+
+    .answer-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .answer-hint {
+      font-size: 13px;
+      color: var(--slate);
+      text-align: center;
+      margin-top: 12px;
+      opacity: 0.75;
+    }
+
+    /* ─── Фидбэк ──────────────────────────────────────────── */
+    .fb { animation: fadeUp 0.3s ease both; }
+
+    .fb__verdict {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--dark);
+      line-height: 1.2;
+      margin: 8px 0 12px;
+    }
+
+    /* Чипы признаков */
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1.5px solid;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+
+    .chip b { font-size: 13px; font-weight: 700; }
+
+    .chip--time    { background: var(--c-time-bg);    border-color: var(--c-time);    color: var(--c-time-dark);    }
+    .chip--context { background: var(--c-context-bg); border-color: var(--c-context); color: var(--c-context-dark); }
+    .chip--value   { background: var(--c-value-bg);   border-color: var(--c-value);   color: var(--c-value-dark);   }
+
+    /* Короткие пояснения по признаку */
+    .note {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--slate);
+      border-left: 3px solid;
+      padding: 2px 0 2px 12px;
+      margin-bottom: 10px;
+    }
+
+    .note--time    { border-color: var(--c-time);    }
+    .note--context { border-color: var(--c-context); }
+    .note--value   { border-color: var(--c-value);   }
+
+    /* Блок типичной ошибки */
+    .mistake {
+      background: var(--sand);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--slate);
+      margin-bottom: 14px;
+    }
+
+    .mistake__label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--dark);
+      margin-bottom: 5px;
+    }
+
+    /* ─── Финальный экран: памятка ────────────────────────── */
+    .recap-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .recap-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
+
+    .recap-item--time    { background: var(--c-time-bg);    color: var(--c-time-dark);    }
+    .recap-item--context { background: var(--c-context-bg); color: var(--c-context-dark); }
+    .recap-item--value   { background: var(--c-value-bg);   color: var(--c-value-dark);   }
+
+    .recap-num { font-family: var(--font-display); font-size: 22px; font-weight: 900; line-height: 1; opacity: 0.5; }
+
+    @media (max-width: 440px) {
+      .answer-buttons { grid-template-columns: 1fr; }
+      .case-card   { min-height: 392px; padding: 16px; }
+      .answer-zone { min-height: 527px; }
+      .screen      { min-height: 1027px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="common.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   ДАННЫЕ
+   isProject — правильный ответ
+   В тексте кейса фрагменты обёрнуты в <mark class="hl hl--*">:
+     hl--time    — про временный характер
+     hl--context — про уникальный контекст
+     hl--value   — про ценность
+   В кейсах-«не проектах» тем же цветом подсвечено то,
+   что признак нарушает.
+   chips: mark — '✓' (соблюдён), '✗' (нарушен), '~' (частично)
+   ═══════════════════════════════════════════════════════════ */
+
+var CRIT_NAME = {
+  time:    'Временный характер',
+  context: 'Уникальный контекст',
+  value:   'Ценность'
+};
+
+var CASES = [
+  /* ─── 1. Проект. Разогрев, акцент на ценности ─────────── */
+  {
+    id: 'marking',
+    industry: 'Производство · FMCG',
+    text:
+      'С 1 марта вступают в силу новые правила обязательной маркировки для вашей товарной группы. ' +
+      '<mark class="hl hl--time">К этой дате</mark> нужно доработать учётную систему, переоборудовать две упаковочные линии, ' +
+      'переоформить документы с 40 поставщиками и обучить персонал склада. ' +
+      '<mark class="hl hl--context">Компания проходит это впервые</mark> — своё оборудование, свои поставщики, свои ограничения. ' +
+      '<mark class="hl hl--value">После перехода компания сохраняет право продавать продукцию,</mark> ' +
+      '<mark class="hl hl--time">а работа команды на этом заканчивается:</mark> маркировка уходит в обычную эксплуатацию.',
+    isProject: true,
+    verdict: 'Это проект',
+    chips: [
+      { k: 'time',    mark: '✓' },
+      { k: 'context', mark: '✓' },
+      { k: 'value',   mark: '✓' }
+    ],
+    notes: [
+      { k: 'value', text: 'Ценность не обязана быть выручкой или новым продуктом. Сохранение права работать и предотвращение потерь — тоже ценность.' }
+    ],
+    mistake:
+      '«Это не проект, это обязаловка — просто надо сделать». Без выделенного руководителя и плана такие переходы делаются в последнюю неделю и в авральном режиме.'
+  },
+
+  /* ─── 2. Не проект. Нарушена временность ──────────────── */
+  {
+    id: 'customer-centric',
+    industry: 'Розничный банк',
+    text:
+      'Год назад в компании запустили инициативу «Клиент в центре»: приказ, руководитель, бюджет и команда из шести человек. ' +
+      'Команда собирает обратную связь, ведёт улучшения в разных подразделениях и ' +
+      '<mark class="hl hl--value">ежемесячно отчитывается по NPS.</mark> ' +
+      '<mark class="hl hl--time">Цель звучит как «стать лидером по уровню сервиса в отрасли», даты завершения нет.</mark> ' +
+      '<mark class="hl hl--context">Задачи приходят потоком и повторяются от квартала к кварталу.</mark>',
+    isProject: false,
+    verdict: 'Это не проект',
+    chips: [
+      { k: 'time',    mark: '✗' },
+      { k: 'context', mark: '~' },
+      { k: 'value',   mark: '~' }
+    ],
+    notes: [
+      { k: 'time',  text: '«Стать лидером» — состояние, которое поддерживают бесконечно, а не результат, который можно сдать и закрыть.' },
+      { k: 'value', text: 'Ценность создаётся постоянно и понемногу, без перехода организации из одного состояния в другое. Это признак операционной деятельности.' }
+    ],
+    mistake:
+      '«Проектом» называют новое направление работы, чтобы быстрее получить бюджет и статус. Фактически создано подразделение с постоянной функцией. Проектом здесь был бы конечный кусок внутри: «к 30 июня запустить сквозной сбор обратной связи во всех каналах».'
+  },
+
+  /* ─── 3. Проект. Обратная ловушка: маленький и без бюджета ─ */
+  {
+    id: 'claims',
+    industry: 'Клиентский сервис',
+    text:
+      '<mark class="hl hl--context">После присоединения другой компании</mark> в отдел клиентского сервиса пришли клиенты с непривычными условиями договоров. ' +
+      'Руководитель отдела решает <mark class="hl hl--time">за два месяца</mark> силами четырёх своих сотрудников описать и внедрить новый регламент обработки претензий, ' +
+      'обучить команду и настроить шаблоны в системе. ' +
+      '<mark class="hl hl--value">Дальше отдел работает по-новому.</mark> ' +
+      'Отдельного бюджета нет, приказа нет, в план проектов компании работа не попала.',
+    isProject: true,
+    verdict: 'Это проект',
+    chips: [
+      { k: 'time',    mark: '✓' },
+      { k: 'context', mark: '✓' },
+      { k: 'value',   mark: '✓' }
+    ],
+    notes: [
+      { k: 'context', text: 'Ни бюджет, ни приказ, ни размер команды не входят в признаки проекта. Четыре человека и два месяца — тоже проект.' }
+    ],
+    mistake:
+      'Проектность определяют по формальным атрибутам: бюджету, приказу, строке в портфеле. Их здесь нет — и у работы не появляется ни срока, ни ответственного, ни контрольных точек. Через два месяца сделана треть: текучка всегда выигрывает у работы без даты.'
+  },
+
+  /* ─── 4. Не проект. Главная ловушка: масштаб ≠ проект ─── */
+  {
+    id: 'heating',
+    industry: 'Энергетика · ЖКХ',
+    text:
+      '<mark class="hl hl--time">Каждый год с июня по сентябрь</mark> компания готовит сеть из 200 объектов к отопительному сезону: ' +
+      'обследование, ремонт, испытания, паспорта готовности. Есть приказ, штаб, назначенный руководитель, бюджет 80 млн и жёсткий срок — 15 сентября. ' +
+      '<mark class="hl hl--context">Работа идёт по регламенту, утверждённому пять лет назад; меняются только перечень объектов и сметы.</mark> ' +
+      '<mark class="hl hl--value">К зиме сеть в том же состоянии готовности, что и год назад.</mark>',
+    isProject: false,
+    verdict: 'Это не проект',
+    chips: [
+      { k: 'time',    mark: '~' },
+      { k: 'context', mark: '✗' },
+      { k: 'value',   mark: '✗' }
+    ],
+    notes: [
+      { k: 'time', text: 'Сроки есть, но это границы очередного цикла, а не завершение деятельности: в июне всё повторится.' }
+    ],
+    mistake:
+      'Жёсткий срок, крупный бюджет, приказ и слово «штаб» ощущаются как проект. Но срочность и масштаб не делают деятельность проектной. Проектом была бы разовая инициатива внутри цикла — например, впервые перевести обследование объектов на дроны и цифровые паспорта.'
+  },
+
+  /* ─── 5. Проект. Завершение ≠ только успех ────────────── */
+  {
+    id: 'pilot',
+    industry: 'Промышленность',
+    text:
+      '<mark class="hl hl--time">Три месяца,</mark> две производственные линии из сорока: ' +
+      '<mark class="hl hl--context">компания впервые тестирует систему предиктивного обслуживания оборудования</mark> — своё ИТ, служба главного механика и внешний поставщик. ' +
+      '<mark class="hl hl--time">По итогам правление либо тиражирует решение на все заводы, либо сворачивает пилот и списывает вложенное.</mark> ' +
+      '<mark class="hl hl--value">В обоих случаях компания получает обоснованное решение вместо догадок.</mark> ' +
+      'Заранее никто не знает, какой вариант окажется верным.',
+    isProject: true,
+    verdict: 'Это проект',
+    chips: [
+      { k: 'time',    mark: '✓' },
+      { k: 'context', mark: '✓' },
+      { k: 'value',   mark: '✓' }
+    ],
+    notes: [
+      { k: 'time', text: 'Оба исхода означают завершение. Проект заканчивается не только достижением цели: признание того, что цель недостижима или больше не нужна, — тоже завершение.' }
+    ],
+    mistake:
+      '«Результат не гарантирован — значит это эксперимент, а не проект», и пилот не оформляют по-проектному. Тогда у него нет заранее записанных критериев успеха, и через три месяца спор «получилось или нет» решается на эмоциях.'
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════
+   СОСТОЯНИЕ
+   ═══════════════════════════════════════════════════════════ */
+var state = {
+  screen: 'intro',   /* 'intro' | 'case' | 'final' */
+  i: 0,              /* индекс текущего кейса */
+  answered: null     /* null | true | false — что выбрал участник */
+};
+
+/* ═══════════════════════════════════════════════════════════
+   РЕНДЕР
+   ═══════════════════════════════════════════════════════════ */
+function render() {
+  var app = document.getElementById('app');
+  if      (state.screen === 'intro') app.innerHTML = renderIntro();
+  else if (state.screen === 'case')  app.innerHTML = renderCase();
+  else                               app.innerHTML = renderFinal();
+  window.scrollTo(0, 0);
+  notifyHeight();
+}
+
+/* ─── Экран 1: Вводный ──────────────────────────────────── */
+function renderIntro() {
+  return '<div class="page-wrap--compact screen anim-fade-up">'
+    + '<h1 class="page-title">Проект<span>или не проект?</span></h1>'
+    + '<div class="divider"></div>'
+    + '<p class="lead-text">'
+      + 'Пять описаний реальной работы в крупных компаниях. По каждому решите, проектная это деятельность или нет.'
+    + '</p>'
+    + '<div class="legend-box mt-md">'
+      + '<div class="legend-tag">Как проверять</div>'
+      + 'Деятельность считается проектом, только если выполняются <strong>все три признака сразу</strong>: '
+      + 'временный характер, уникальный контекст и создание ценности. '
+      + 'Если хотя бы один не выполняется — перед вами операционная деятельность, даже если её называют проектом.'
+      + '<br><br>После ответа в тексте кейса подсветятся фрагменты, которые отвечают за каждый признак.'
+    + '</div>'
+    + '<button class="btn btn--primary btn--full mt-md" onclick="start()">Начать →</button>'
+    + '</div>';
+}
+
+/* ─── Экран 2: Кейс ─────────────────────────────────────── */
+function renderCase() {
+  var c   = CASES[state.i];
+  var pct = Math.round(((state.i + (state.answered === null ? 0 : 1)) / CASES.length) * 100);
+
+  return '<div class="page-wrap--compact screen">'
+
+    /* Прогресс */
+    + '<div class="progress">'
+      + '<div class="progress__meta">'
+        + '<span class="progress__label">' + c.industry + '</span>'
+        + '<span class="progress__fraction">' + (state.i + 1) + '<em>/' + CASES.length + '</em></span>'
+      + '</div>'
+      + '<div class="progress__track">'
+        + '<div class="progress__fill" style="width:' + pct + '%"></div>'
+      + '</div>'
+    + '</div>'
+
+    /* Кейс */
+    + '<div class="case-card anim-card-in">'
+      + '<p class="case-text' + (state.answered === null ? '' : ' is-revealed') + '">' + c.text + '</p>'
+    + '</div>'
+
+    /* Зона ответа: кнопки ИЛИ фидбэк — на одном и том же месте */
+    + '<div class="answer-zone">'
+      + (state.answered === null ? renderButtons() : renderFeedback(c))
+    + '</div>'
+
+    + '</div>';
+}
+
+function renderButtons() {
+  return '<div class="answer-buttons">'
+      + '<button class="btn btn--primary" onclick="answer(true)">Проект</button>'
+      + '<button class="btn btn--secondary" onclick="answer(false)">Не проект</button>'
+    + '</div>'
+    + '<p class="answer-hint">Проверьте все три признака, прежде чем отвечать</p>';
+}
+
+function renderFeedback(c) {
+  var isRight = (state.answered === c.isProject);
+  var isLast  = (state.i === CASES.length - 1);
+
+  var chips = c.chips.map(function(ch) {
+    return '<span class="chip chip--' + ch.k + '">' + CRIT_NAME[ch.k] + ' <b>' + ch.mark + '</b></span>';
+  }).join('');
+
+  var notes = c.notes.map(function(n) {
+    return '<div class="note note--' + n.k + '">' + n.text + '</div>';
+  }).join('');
+
+  return '<div class="fb">'
+    + '<span class="badge ' + (isRight ? 'badge--green">Верно' : 'badge--error">Ошибка') + '</span>'
+    + '<div class="fb__verdict">' + c.verdict + '</div>'
+    + '<div class="chips">' + chips + '</div>'
+    + notes
+    + '<div class="mistake">'
+      + '<div class="mistake__label">Типичная ошибка</div>'
+      + c.mistake
+    + '</div>'
+    + '<button class="btn btn--primary btn--full" onclick="next()">'
+      + (isLast ? 'Завершить →' : 'Следующий кейс →')
+    + '</button>'
+    + '</div>';
+}
+
+/* ─── Экран 3: Итоговый ─────────────────────────────────── */
+function renderFinal() {
+  return '<div class="page-wrap--compact screen anim-fade-up">'
+    + '<div class="result-hero">'
+      + '<div class="result-hero__icon">🧭</div>'
+      + '<div class="result-hero__title">Все пять разобраны</div>'
+      + '<div class="result-hero__text">'
+        + 'Ни бюджет, ни приказ, ни масштаб, ни срочность не являются признаками проекта. Проверяйте только эти три — и все три сразу.'
+      + '</div>'
+    + '</div>'
+
+    + '<div class="recap-item recap-item--time">'
+      + '<span class="recap-num">1</span>'
+      + '<span><strong>Временный характер</strong>Есть проверяемый признак завершения — а не состояние, которое поддерживают бесконечно.</span>'
+    + '</div>'
+    + '<div class="recap-item recap-item--context">'
+      + '<span class="recap-num">2</span>'
+      + '<span><strong>Уникальный контекст</strong>Это делается впервые в этих условиях — а не по регламенту, где меняются только цифры.</span>'
+    + '</div>'
+    + '<div class="recap-item recap-item--value">'
+      + '<span class="recap-num">3</span>'
+      + '<span><strong>Ценность</strong>Организация переходит из одного состояния в другое — а не поддерживает текущее.</span>'
+    + '</div>'
+
+    + '<button class="btn btn--secondary btn--full mt-sm" onclick="restart()">↺  Пройти заново</button>'
+    + '</div>';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ЛОГИКА
+   ═══════════════════════════════════════════════════════════ */
+function start() {
+  state.screen = 'case';
+  state.i = 0;
+  state.answered = null;
+  render();
+}
+
+function answer(choice) {
+  state.answered = choice;
+  render();
+}
+
+function next() {
+  if (state.i === CASES.length - 1) {
+    state.screen = 'final';
+  } else {
+    state.i = state.i + 1;
+    state.answered = null;
+  }
+  render();
+}
+
+function restart() {
+  state = { screen: 'intro', i: 0, answered: null };
+  render();
+}
+
+/* ─── Старт ─────────────────────────────────────────────── */
+render();
+</script>
+
+</body>
+</html>

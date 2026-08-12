@@ -1,0 +1,435 @@
+/* =========================================================
+   M360 Core — Global Stylesheet
+   Шрифты: Inter (тело) + Playfair Display (заголовки)
+   Корп. цвета: #C31532 · #495761 · #003B48
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700;900&display=swap');
+
+/* ─── CSS Variables ─────────────────────────────────────── */
+:root {
+  /* Корпоративные */
+  --red:   #C31532;
+  --dark:  #003B48;
+  --slate: #495761;
+
+  /* Нейтральные */
+  --cream:  #FAF8F4;
+  --sand:   #F0EDE6;
+  --border: #DDD8CF;
+  --white:  #FFFFFF;
+
+  /* Статус — успех */
+  --green:        #1A6B4A;
+  --green-bg:     #EBF5EF;
+  --green-border: #A8D5BC;
+
+  /* Статус — предупреждение */
+  --amber:        #8A6200;
+  --amber-bg:     #FFF8E6;
+  --amber-border: #E8C96A;
+
+  /* Статус — ошибка */
+  --red-bg:     #FEF0F2;
+  --red-border: #F2A0AC;
+
+  /* Типографика */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
+
+  /* Скругления */
+  --radius-sm: 5px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+}
+
+/* ─── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Base ──────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--dark);
+  line-height: 1.65;
+  overflow-x: hidden;
+}
+
+/* Акцентная полоса сверху страницы */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--red) 0%, var(--dark) 50%, var(--red) 100%);
+  z-index: 200;
+}
+
+/* ─── Layout ─────────────────────────────────────────────── */
+
+/* Стандартная обёртка — для страниц с прокруткой */
+.page-wrap {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+/* Компактная обёртка — для многошаговых SPA без внешнего скролла */
+.page-wrap--compact {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 20px 20px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Typography ─────────────────────────────────────────── */
+
+/* Надпись над заголовком */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--red);
+  margin-bottom: 10px;
+}
+
+/* Главный заголовок страницы */
+.page-title {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 6vw, 42px);
+  font-weight: 900;
+  color: var(--dark);
+  line-height: 1.12;
+  margin-bottom: 6px;
+}
+
+.page-title span { color: var(--red); display: block; }
+
+/* Заголовок секции или этапа */
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+/* Текст вопроса или задания */
+.question-text {
+  font-family: var(--font-display);
+  font-size: clamp(14px, 3vw, 18px);
+  font-weight: 700;
+  color: var(--dark);
+  line-height: 1.35;
+}
+
+/* Вводный / описательный текст */
+.lead-text {
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--slate);
+}
+
+/* Красная разделительная черта */
+.divider {
+  width: 50px;
+  height: 2px;
+  background: var(--red);
+  margin: 16px 0;
+}
+
+/* ─── Кнопки ─────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  padding: 13px 24px;
+  transition: background 0.18s, border-color 0.18s, transform 0.1s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 1;
+  text-align: center;
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Основная кнопка */
+.btn--primary { background: var(--dark); color: var(--white); }
+.btn--primary:hover:not(:disabled) { background: var(--red); }
+
+/* Вторичная кнопка */
+.btn--secondary {
+  background: var(--white);
+  color: var(--dark);
+  border: 1.5px solid var(--border);
+}
+.btn--secondary:hover:not(:disabled) { border-color: var(--dark); background: var(--sand); }
+
+/* На всю ширину */
+.btn--full { width: 100%; }
+
+/* ─── Карточки ───────────────────────────────────────────── */
+.card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+/* Кликабельная карточка */
+.card--interactive {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card--interactive:hover {
+  border-color: var(--dark);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 59, 72, 0.1);
+}
+
+.card--interactive:active { transform: translateY(0); }
+
+/* Состояния карточки */
+.card--selected { border-color: var(--dark); background: var(--sand); }
+.card--correct  { border-color: var(--green); background: var(--green-bg); }
+.card--wrong    { border-color: var(--red);   background: var(--red-bg);   }
+.card--warning  { border-color: var(--amber); background: var(--amber-bg); }
+.card--dimmed   { opacity: 0.38; pointer-events: none; }
+
+/* ─── Фидбэк-блоки ──────────────────────────────────────── */
+.feedback {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.65;
+  animation: fadeUp 0.3s ease both;
+}
+
+.feedback__head {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.feedback--success {
+  background: var(--green-bg);
+  border-left: 4px solid var(--green);
+  color: #1A4A35;
+}
+
+.feedback--warning {
+  background: var(--amber-bg);
+  border-left: 4px solid var(--amber);
+  color: var(--amber);
+}
+
+.feedback--error {
+  background: var(--red-bg);
+  border-left: 4px solid var(--red);
+  color: #7A1525;
+}
+
+.feedback--info {
+  background: var(--sand);
+  border-left: 4px solid var(--dark);
+  color: var(--dark);
+}
+
+/* ─── Прогресс-бар ──────────────────────────────────────── */
+.progress { margin-bottom: 12px; }
+
+.progress__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progress__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.progress__fraction {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--dark);
+}
+
+.progress__fraction em { color: var(--red); font-style: normal; }
+
+.progress__track {
+  height: 4px;
+  background: var(--sand);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--dark), var(--red));
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Бейджи и метки ────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 3px;
+  line-height: 1.5;
+}
+
+.badge--dark   { background: var(--dark);        color: var(--white);  }
+.badge--red    { background: var(--red);         color: var(--white);  }
+.badge--green  { background: var(--green-bg);    border: 1px solid var(--green-border); color: var(--green); }
+.badge--amber  { background: var(--amber-bg);    border: 1px solid var(--amber-border); color: var(--amber); }
+.badge--error  { background: var(--red-bg);      border: 1px solid var(--red-border);   color: var(--red);   }
+.badge--neutral{ background: var(--sand);        border: 1px solid var(--border);       color: var(--slate); }
+
+/* Метка этапа (pill-форма) */
+.stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--dark);
+  color: var(--white);
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* ─── Легенда / тёмный информационный блок ──────────────── */
+.legend-box {
+  background: var(--dark);
+  color: var(--white);
+  border-radius: var(--radius-md);
+  padding: 20px 22px;
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.legend-box .legend-tag {
+  display: block;
+  width: fit-content;
+  background: var(--red);
+  color: var(--white);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 12px;
+}
+
+.legend-box strong { color: #F0A070; }
+
+/* ─── Итоговый блок (финальный экран) ───────────────────── */
+.result-hero {
+  background: var(--dark);
+  color: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.result-hero__icon   { font-size: 44px; margin-bottom: 12px; }
+.result-hero__title  {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 4vw, 28px);
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+.result-hero__text   { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.75); }
+
+/* ─── Навигационная панель (назад / вперёд) ─────────────── */
+.nav-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.nav-bar .btn--secondary { flex-shrink: 0; }
+.nav-bar .btn--primary   { flex: 1; }
+
+/* ─── Анимации ──────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+.anim-fade-up { animation: fadeUp 0.4s ease both; }
+.anim-card-in { animation: cardIn 0.35s cubic-bezier(0.34, 1.1, 0.64, 1) both; }
+
+/* ─── Утилиты ───────────────────────────────────────────── */
+.mt-xs { margin-top: 6px;  }
+.mt-sm { margin-top: 12px; }
+.mt-md { margin-top: 20px; }
+.mt-lg { margin-top: 32px; }
+.mt-xl { margin-top: 44px; }
+
+.hidden { display: none !important; }
+
+/* ─── Адаптив ───────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .page-wrap         { padding: 32px 14px 48px; }
+  .page-wrap--compact{ padding: 16px 14px 20px; }
+  .result-hero       { padding: 20px 16px; }
+  .legend-box        { padding: 16px; }
+}
+
+@media (max-width: 360px) {
+  .btn { font-size: 12px; padding: 11px 16px; }
+  .badge { font-size: 9px; }
+}
